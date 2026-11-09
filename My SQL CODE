@@ -1,0 +1,161 @@
+CREATE DATABASE IF NOT EXISTS benhospital;
+
+USE benhospital; 
+
+CREATE TABLE IF NOT EXISTS patient ( 
+
+    PatientID INT NOT NULL, 
+
+    PatientName VARCHAR(100) NOT NULL, 
+
+    PostCode VARCHAR(10), 
+
+    PRIMARY KEY (PatientID) 
+
+) ENGINE = InnoDB; 
+
+CREATE TABLE IF NOT EXISTS specialty ( 
+
+    SpecialtyID INT NOT NULL, 
+
+    SpecialtyName VARCHAR(45) NOT NULL, 
+
+    PRIMARY KEY (SpecialtyID) 
+
+) ENGINE = InnoDB; 
+
+CREATE TABLE IF NOT EXISTS clinician ( 
+
+    ClinicianID INT NOT NULL, 
+
+    ClinicianName VARCHAR(100) NOT NULL, 
+
+    SpecialtyID INT NOT NULL, 
+
+    PRIMARY KEY (ClinicianID), 
+
+ 
+
+    CONSTRAINT fk_clinician_specialty 
+
+    FOREIGN KEY (SpecialtyID) 
+
+    REFERENCES specialty(SpecialtyID) 
+
+) ENGINE = InnoDB; 
+
+CREATE TABLE IF NOT EXISTS clinic ( 
+
+    ClinicID INT NOT NULL, 
+
+    ClinicName VARCHAR(45) NOT NULL, 
+
+    PRIMARY KEY (ClinicID) 
+
+) ENGINE = InnoDB; 
+
+CREATE TABLE IF NOT EXISTS appointment ( 
+
+    AppointmentID INT NOT NULL, 
+
+    ClinicID INT NOT NULL, 
+
+    PatientID INT NOT NULL, 
+
+    ClinicianID INT NOT NULL, 
+
+    AppointmentDate DATE NOT NULL, 
+
+    AppointmentTime TIME NOT NULL, 
+
+    PRIMARY KEY (AppointmentID), 
+
+    CONSTRAINT fk_appointment_clinic 
+
+    FOREIGN KEY (ClinicID) 
+
+    REFERENCES clinic(ClinicID), 
+
+ 
+
+    CONSTRAINT fk_appointment_patient 
+
+    FOREIGN KEY (PatientID) 
+
+    REFERENCES patient(PatientID), 
+
+    CONSTRAINT fk_appointment_clinician 
+
+    FOREIGN KEY (ClinicianID) 
+
+    REFERENCES clinician(ClinicianID) 
+
+) ENGINE = InnoDB; 
+
+This table connects patients, clinicians and clinics through foreign keys. 
+
+CREATE TABLE IF NOT EXISTS diagnosis ( 
+
+    DiagnosisID INT NOT NULL, 
+
+    AppointmentID INT NOT NULL, 
+
+    DiagnosisNotes VARCHAR(100) NOT NULL, 
+
+    DiagnosisTime DATETIME, 
+
+    PRIMARY KEY (DiagnosisID), 
+
+    CONSTRAINT fk_diagnosis_appointment 
+
+    FOREIGN KEY (AppointmentID) 
+
+    REFERENCES appointment(AppointmentID) 
+
+) ENGINE = InnoDB; 
+
+CREATE TABLE IF NOT EXISTS medicine ( 
+
+    MedicineID INT NOT NULL, 
+
+    MedicineName VARCHAR(100) NOT NULL, 
+
+    PRIMARY KEY (MedicineID) 
+
+) ENGINE = InnoDB; 
+
+This is a junction table that supports a many-to-many relationship between appointments and medicines. 
+
+CREATE TABLE IF NOT EXISTS appointment_medicine ( 
+
+    AppointmentID INT NOT NULL, 
+
+    MedicineID INT NOT NULL, 
+
+    PRIMARY KEY (AppointmentID, MedicineID), 
+
+    FOREIGN KEY (AppointmentID) 
+
+    REFERENCES appointment(AppointmentID), 
+
+    FOREIGN KEY (MedicineID) 
+
+    REFERENCES medicine(MedicineID) 
+
+) ENGINE = InnoDB; 
+
+CREATE TABLE IF NOT EXISTS follow_up ( 
+
+    FollowUpID INT NOT NULL AUTO_INCREMENT, 
+
+    AppointmentID INT NOT NULL, 
+
+    FollowUpDate DATE NOT NULL, 
+
+    PRIMARY KEY (FollowUpID), 
+
+    FOREIGN KEY (AppointmentID) 
+
+    REFERENCES appointment(AppointmentID) 
+
+) ENGINE = InnoDB
