@@ -1,0 +1,100 @@
+Trigger
+
+GRANT SELECT ON CrownfieldHospital.Patient TO 'receptionist'@'localhost';
+GRANT SELECT, INSERT, UPDATE
+ON CrownfieldHospital.Appointment
+TO 'clinician'@'localhost';
+
+
+IF AppointmentCount >= 3 THEN
+    SIGNAL SQLSTATE '45000'
+    SET MESSAGE_TEXT =
+    'Patient already has the maximum number of appointments for that day';
+END IF;
+
+INNER JOIN
+
+SELECT
+    p.PatientName,
+    c.ClinicianName,
+    cl.ClinicName,
+    d.DiagnosisName,
+    a.AppointmentDate,
+    a.AppointmentTime
+FROM Appointment a
+INNER JOIN Patient p
+    ON a.PatientID = p.PatientID
+INNER JOIN Clinician c
+    ON a.ClinicianID = c.ClinicianID
+INNER JOIN Clinic cl
+    ON a.ClinicID = cl.ClinicID
+INNER JOIN Diagnosis d
+    ON a.DiagnosisID = d.DiagnosisID
+ORDER BY a.AppointmentDate;
+
+LEFT JOIN
+
+SELECT
+    p.PatientID,
+    p.PatientName,
+    a.AppointmentID
+FROM Patient p
+LEFT JOIN Appointment a
+    ON p.PatientID = a.PatientID
+WHERE a.AppointmentID IS NULL;
+
+AGGREGATE GROUP BY
+SELECT
+    c.ClinicianName,
+    COUNT(a.AppointmentID) AS TotalAppointments
+FROM Clinician c
+INNER JOIN Appointment a
+    ON c.ClinicianID = a.ClinicianID
+GROUP BY c.ClinicianName
+HAVING COUNT(a.AppointmentID) > 1;
+
+LEFT JOIN
+SELECT
+    p.PatientID,
+    p.PatientName,
+    a.AppointmentID
+FROM Patient p
+LEFT JOIN Appointment a
+    ON p.PatientID = a.PatientID
+WHERE a.AppointmentID IS NULL;
+
+STORED PROCEDURE
+
+DELIMITER //
+
+CREATE PROCEDURE GetPatientAppointments
+(
+    IN PatientCode VARCHAR(10)
+)
+BEGIN
+
+    SELECT
+        p.PatientName,
+        c.ClinicianName,
+        cl.ClinicName,
+        a.AppointmentDate,
+        a.AppointmentTime
+    FROM Appointment a
+        INNER JOIN Patient p
+            ON a.PatientID = p.PatientID
+        INNER JOIN Clinician c
+            ON a.ClinicianID = c.ClinicianID
+        INNER JOIN Clinic cl
+            ON a.ClinicID = cl.ClinicID
+    WHERE p.PatientID = PatientCode;
+
+END //
+
+DELIMITER ;
+
+
+
+
+
+
+
